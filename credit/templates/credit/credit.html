@@ -1,0 +1,126 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Кредитный калькулятор</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, Roboto, Arial, sans-serif; }
+    body { background:#f6f7fb; color:#222; line-height:1.4; }
+    .header {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:18px 24px; background:#fff; border-bottom:1px solid #e6e9ef;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+    }
+    .logo { font-weight:700; color:#0b66ff; font-size:20px; letter-spacing:0.4px; }
+    .header .profile a { text-decoration:none; color:#0b66ff; font-weight:600; }
+    :root { font-family: system-ui, -apple-system, Arial, sans-serif; }
+    body { margin: 0; background: #f6f7fb; }
+    .wrap { max-width: 720px; margin: 48px auto; padding: 24px; background: #fff; border-radius: 16px; box-shadow: 0 6px 24px rgba(0,0,0,.06); }
+    h1 { margin: 0 0 16px; font-size: 22px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 14px; color: #333; }
+    input, select { padding: 10px 12px; border: 1px solid #e3e5ea; border-radius: 10px; font-size: 14px; }
+    .actions { margin-top: 16px; display: flex; gap: 10px; }
+    button { padding: 10px 14px; border: 0; border-radius: 10px; cursor: pointer; font-weight: 600; }
+    .btn-primary { background: #4f46e5; color: #fff; }
+    .btn-ghost { background: #f1f1f6; }
+    .msg { margin-top: 16px; padding: 12px; border-radius: 10px; background: #f1f5ff; color: #1f3366; }
+    .results { margin-top: 20px; padding: 14px; border: 1px dashed #d9def0; border-radius: 10px; background: #fafbff; }
+    .results h2 { margin: 0 0 8px; font-size: 16px; }
+    .muted { color: #6b7280; font-size: 13px; }
+    @media (max-width: 640px){ .row { grid-template-columns: 1fr; } }
+    .logo a {
+      text-decoration: none; /* убирает подчёркивание */
+      color: inherit;        /* наследует цвет от родителя */
+      font-weight: bold;     /* оставляем жирным, если нужно */
+    }
+  </style>
+</head>
+<body>
+  <!-- 🔹 Блок юзера и logout -->
+  <header class="header">
+    <div class="logo">
+      <a href="{% url 'home' %}">TEST FINTECH</a>
+    </div>
+    <div class="profile">
+      {% if user.is_authenticated %}
+        <span>{{ user.username }}</span>
+        &nbsp; | &nbsp;
+        <a href="{% url 'logout' %}">Выйти</a>
+      {% else %}
+        <a href="{% url 'login' %}">Войти</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <div class="wrap">
+    <h1>Кредитный калькулятор</h1>
+    <p class="muted">Введите сумму, фиксированную ставку и срок в месяцах</p>
+
+    <form method="post" action="{% url 'credit' %}">
+      {% csrf_token %}
+
+      <div class="row">
+        <div class="field">
+          <label for="amount">Сумма кредита</label>
+          <input type="number" id="amount" name="amount" min="0" step="0.01" placeholder="Напр. 1000000" required>
+        </div>
+
+        <div class="field">
+          <label>Текущая ставка, % годовых</label>
+          <div style="padding:10px 12px; background:#f9fafb; border:1px solid #e3e5ea; border-radius:10px;">
+            {{ rate }} %
+          </div>
+          <input type="hidden" id="rate" name="rate" value="{{ rate }}">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="months">Срок, месяцев</label>
+          <input type="number" id="months" name="months" min="1" step="1" placeholder="Напр. 24" required>
+        </div>
+
+        <div class="field">
+          <label for="type">Тип платежа</label>
+          <select id="type" name="type">
+            <option value="annuity" selected>Аннуитетный</option>
+            <!-- <option value="diff">Дифференцированный</option> -->
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" name='action' value='calculate' class="btn-primary">Рассчитать</button>
+        <button type="reset"  class="btn-ghost">Сбросить</button>
+      </div>
+    </form>
+
+    {% if error %}
+      <div class="msg">{{ error }}</div>
+    {% endif %}
+
+    {% if result %}
+      <div class="results">
+        <h2>Результаты</h2>
+        <div>Ежемесячный платёж: <strong>{{ result.monthly_payment }}</strong></div>
+        <div>Переплата: <strong>{{ result.total_interest }}</strong></div>
+        <div>Итого к оплате: <strong>{{ result.total_payment }}</strong></div>
+
+        <!-- 👇 кнопка сохранить -->
+        <form method="post" action="{% url 'credit' %}">
+          {% csrf_token %}
+          <input type="hidden" name="amount" value="{{ amount }}">
+          <input type="hidden" name="rate" value="16.5">
+          <input type="hidden" name="months" value="{{ months }}">
+          <input type="hidden" name="type" value="annuity">
+          <button type="submit" name="action" value="save" class="btn-primary">Получить</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Мои кредиты — TEST FINTECH</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, Roboto, Arial, sans-serif; }
+    body { background:#f6f7fb; color:#222; line-height:1.4; }
+
+    .header {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:18px 24px; background:#fff; border-bottom:1px solid #e6e9ef;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+    }
+    .logo { font-weight:700; color:#0b66ff; font-size:20px; letter-spacing:0.4px; }
+    .logo a { text-decoration:none; color:inherit; }
+    .header .profile a { text-decoration:none; color:#0b66ff; font-weight:600; }
+
+    .page { max-width:1100px; margin:28px auto; padding:0 16px; }
+    .card {
+      background:#fff; padding:18px; border-radius:8px; border:1px solid #e6e9ef;
+      box-shadow: 0 6px 18px rgba(17,24,39,0.02);
+    }
+
+    h2 { font-size:18px; margin-bottom:16px; color:#333; }
+    .credits-table { width:100%; border-collapse:collapse; font-size:14px; }
+    .credits-table thead th {
+      text-align:left; padding:10px 8px; color:#6b7280; font-weight:600; font-size:13px;
+      border-bottom:1px solid #f0f1f5;
+    }
+    .credits-table tbody td {
+      padding:10px 8px; border-bottom:1px dashed #f0f1f5; color:#222;
+    }
+    .credits-empty { padding:16px; color:#6b7280; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+      <a href="{% url 'home' %}">TEST FINTECH</a>
+    </div>
+    <div class="profile">
+      {% if user.is_authenticated %}
+        <span>{{ user.username }}</span>
+        &nbsp; | &nbsp;
+        <a href="{% url 'logout' %}">Выйти</a>
+      {% else %}
+        <a href="{% url 'login' %}">Войти</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="card">
+      <h2>Мои кредиты</h2>
+      {% if credits %}
+        <table class="credits-table">
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Сумма</th>
+              <th>Ставка</th>
+              <th>Срок (мес.)</th>
+              
+            </tr>
+          </thead>
+          <tbody>
+            {% for credit in credits %}
+              <tr>
+                <td>{{ credit.created_at|date:"d.m.Y H:i" }}</td>
+                <td>{{ credit.amount }}</td>
+                <td>{{ credit.rate }} %</td>
+                <td>{{ credit.months }}</td>
+                
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="credits-empty">У вас пока нет кредитов.</div>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>
